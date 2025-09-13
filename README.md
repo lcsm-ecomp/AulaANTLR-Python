@@ -1,7 +1,19 @@
 ## Aula prática de ANTLR em Python
 
-1. Instalação
+Estes arquivos contem a implementação de um estudo de caso para a disciplina de compiladores
+no semestre 2025.2: Um compilador / interpretador de uma linguagem imperativa semelhante à linguagem C.
 
-2. Compilação de um projeto
+1. Arquivos:
 
-3. 
+- Expr.g4: Descrição Léxica e sintática da linguagem
+- main.py: interpretador da linguagem 
+
+2. Instalação
+Utilizando python:
+   - python -m venv .
+   - .\Scripts\activate  # ou source ./bin/activate (pode variar de acordo com o SO)
+   - pip install antlr4-tool antlr4-python3-runtime 
+   
+2. Execução do projeto
+   - python main.py
+   
