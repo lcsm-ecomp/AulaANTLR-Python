@@ -15,5 +15,6 @@ Utilizando python:
    - pip install antlr4-tool antlr4-python3-runtime 
    
 2. Execução do projeto
+   - antlr4 -Dlanguage=Python3 Expr.g4
    - python main.py
    
