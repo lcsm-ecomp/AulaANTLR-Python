@@ -356,15 +356,3 @@ expr
 > Observação: em um `.g4` real, você provavelmente usará **precedência**/associatividade por meio de regras fatoradas (por exemplo, `termo`, `fator`) ou **operadores precedenciais** com `assoc=left`. O esboço acima foi mantido simples para corresponder aos *contexts* presentes no seu interpretador.
 
 ---
-
-# 10) Como estender
-
-* **Relacionais/booleanos**: adicionar `<, <=, ==, !=, and, or`, e um comando `if ... then ... [else ...] end`.
-* **Entrada**: uma função `read()` como expressão para ler valores.
-* **Variável de laço imutável**: impedir escrita à variável de controle dentro do `for`.
-* **Escopos**: permitir blocos com escopo léxico (sombras de nomes).
-
----
-
-Se quiser, eu gero uma versão desta documentação em **PDF** ou em **Markdown/Reveal.js** para suas aulas, com tabelas de precedência e diagrama sintático. Também posso sincronizar a gramática real do seu `Expr.g4` (se tiver regras adicionais) e alinhar os nomes dos *contexts* exatamente.
-
