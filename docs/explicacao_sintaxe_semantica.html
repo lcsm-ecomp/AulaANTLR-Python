@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relação Léxico ↔ Sintaxe ↔ Semântica — Gramática Expr</title>
+<style>
+  :root{
+    --bg:#f9fafb;
+    --fg:#111827;
+    --muted:#6b7280;
+    --accent:#2563eb;
+    --card:#ffffff;
+    --border:#e5e7eb;
+    --mono:#0f172a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font:16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    color:var(--fg);
+    background:var(--bg);
+  }
+  header{
+    background:linear-gradient(135deg, #eff6ff 0%, #ffffff 60%);
+    border-bottom:1px solid var(--border);
+    padding:2.5rem 1rem;
+  }
+  .container{max-width:980px;margin:0 auto;padding:0 1rem}
+  h1{margin:0 0 .25rem;font-size:clamp(1.6rem,3vw,2.2rem)}
+  .lead{color:var(--muted);margin:0}
+  section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1rem;margin:1rem 0}
+  h2{margin-top:.2rem;font-size:1.2rem;color:var(--accent)}
+  table{width:100%;border-collapse:collapse;margin:.5rem 0}
+  th, td{border:1px solid var(--border);padding:.6rem;vertical-align:top}
+  th{background:#f3f4f6;text-align:left;font-weight:600}
+  code, pre{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.95em; color:var(--mono)}
+  pre{background:#f8fafc;border:1px solid var(--border); border-radius:8px; padding:.75rem; overflow:auto}
+  .footer{color:var(--muted);font-size:.9rem;margin:2rem 0 3rem}
+  .tag{display:inline-block;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:999px;padding:.1rem .5rem;margin-right:.35rem;font-size:.8rem}
+  .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+       border:1px solid var(--border); border-bottom-width:2px; background:#fff; padding:.05rem .35rem; border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Relação Léxico ↔ Sintaxe ↔ Semântica</h1>
+    <p class="lead">Documento textual (HTML) para a gramática <strong>Expr.g4</strong> e o analisador semântico em Python.</p>
+  </div>
+</header>
+
+<main class="container">
+  <section>
+    <h2>Visão geral</h2>
+    <p>Este documento conecta, para cada construção da linguagem, os níveis <em>léxico</em> (tokens), <em>sintático</em> (regras do parser) e <em>semântico</em> (ações de verificação implementadas em <code>analisador_semantico.py</code>), com uma explicação breve da lógica.</p>
+    <p>Convenções: <span class="tag">Léxico</span> define os átomos; <span class="tag">Sintaxe</span> combina os átomos; <span class="tag">Semântica</span> valida o uso correto (declarações antes de uso, proibição de redeclaração, etc.).</p>
+  </section>
+
+  <section>
+    <h2>Programa (<code>ProgramaContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Uso amplo de tokens: <code>ID</code>, palavras‑chave (<code>int</code>, <code>for</code>), operadores, números e símbolos de pontuação.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>programa : declaracao* comando* EOF ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.ProgramaContext():
+    for dec in t.declaracoes:
+        analise(dec)
+    for com in t.comandos:
+        analise(com)</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Analisa todas as declarações antes dos comandos, garantindo que variáveis estejam definidas previamente.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Declaração de variável (<code>DecContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Tokens: <code>'int'</code>, <code>ID</code>, <code>';'</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>declaracao : 'int' ID ';' ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.DecContext():
+    nome = t.nome.text
+    if declaracoes.get(nome) != None:
+        raise Exception(f'variavel {nome} declarada duas vezes na linha {t.start.line}')
+    declaracoes[nome] = 'int'</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Proíbe redeclaração e registra o identificador na tabela <code>declaracoes</code> com tipo <code>int</code>.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Atribuição (<code>AtribContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Tokens: <code>ID</code>, <code>'='</code>, <code>NUM</code>, <code>';'</code> (e operadores conforme a sua <code>expr</code>).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>atribuicao : ID '=' expr ';' ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.AtribContext():
+    nome = t.nome.text
+    valor = t.valor
+    if declaracoes.get(nome) == None:
+        raise Exception(f'variavel {nome} nao foi declarada na atribuicao')
+    analise(valor)</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Exige que a variável LHS tenha sido declarada e valida recursivamente a expressão RHS.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Laço <code>for</code> (<code>ForContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Tokens: <code>'for'</code>, <code>ID</code>, <code>'{'</code>, <code>'}'</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>comandoFor : 'for' ID '{' comando* '}' ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.ForContext():
+    nome = t.nome.text
+    if declaracoes.get(nome) == None:
+        raise Exception(f'variavel {nome} nao foi declarada no comando for')
+    for com in t.c:
+        analise(com)</code></pre></td></tr>
+      <tr><th>Explicação</th><td>A variável de controle deve existir. Cada comando do corpo é analisado recursivamente.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Constante numérica (<code>ConstContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>NUM</code> (ex.: <kbd class="kbd">[0-9]+</kbd>).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : NUM ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.ConstContext():
+    t.valorNumerico = int(t.getText())
+    return True</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Converte o literal para inteiro e o aceita como valor válido em expressões.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Variável em expressão (<code>VarContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>ID</code> (ex.: <kbd class="kbd">[a-zA-Z_][a-zA-Z0-9_]*</kbd>).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : ID ;</code></pre></td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case ExprParser.VarContext():
+    nome = t.nome.text
+    if declaracoes.get(nome) == None:
+        raise Exception(f'variavel {nome} nao foi declarada na expressao')</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Garante que apenas identificadores previamente declarados possam ser usados em expressões.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Nó terminal (<code>TerminalNode</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Qualquer token terminal da gramática (números, identificadores, operadores, símbolos).</td></tr>
+      <tr><th>Sintaxe</th><td>Terminais aparecem diretamente em várias regras.</td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case TerminalNode():
+    return True</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Tokens isolados são aceitos sem validação adicional no nível semântico.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Fallback (caso geral)</h2>
+    <table>
+      <tr><th>Léxico</th><td>—</td></tr>
+      <tr><th>Sintaxe</th><td>Aplica‑se a qualquer regra não coberta pelos casos anteriores.</td></tr>
+      <tr><th>Semântica (Python)</th><td><pre><code>case _:
+    for ch in t.getChildren():
+        analise(ch)</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Percorre recursivamente os filhos do nó, garantindo cobertura para regras compostas (como expressões aritméticas com operadores).</td></tr>
+    </table>
+  </section>
+
+  <p class="footer">Gerado automaticamente. Ajuste os trechos léxicos/sintáticos conforme a sua <code>Expr.g4</code> caso haja diferenças nos nomes de regras ou tokens.</p>
+</main>
+</body>
+</html>

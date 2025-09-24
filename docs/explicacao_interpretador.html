@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relação Léxico ↔ Sintaxe ↔ Interpretação — Gramática Expr</title>
+<style>
+  :root{
+    --bg:#f9fafb; --fg:#111827; --muted:#6b7280; --accent:#2563eb;
+    --card:#ffffff; --border:#e5e7eb; --mono:#0f172a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"; color:var(--fg); background:var(--bg)}
+  header{background:linear-gradient(135deg,#eff6ff 0%,#ffffff 60%); border-bottom:1px solid var(--border); padding:2.2rem 1rem}
+  .container{max-width:980px; margin:0 auto; padding:0 1rem}
+  h1{margin:0 0 .25rem; font-size:clamp(1.6rem,3vw,2.2rem)}
+  .lead{color:var(--muted); margin:0}
+  section{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1rem 1rem; margin:1rem 0}
+  h2{margin-top:.2rem; font-size:1.2rem; color:var(--accent)}
+  table{width:100%; border-collapse:collapse; margin:.5rem 0}
+  th,td{border:1px solid var(--border); padding:.6rem; vertical-align:top}
+  th{background:#f3f4f6; text-align:left; font-weight:600}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size:.95em; color:var(--mono)}
+  pre{background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:.75rem; overflow:auto}
+  .footer{color:var(--muted); font-size:.9rem; margin:2rem 0 3rem}
+  .tag{display:inline-block; background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; border-radius:999px; padding:.1rem .5rem; margin-right:.35rem; font-size:.8rem}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; border:1px solid var(--border); border-bottom-width:2px; background:#fff; padding:.05rem .35rem; border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="container">
+    <h1>Relação Léxico ↔ Sintaxe ↔ Interpretação</h1>
+    <p class="lead">Documento textual (HTML) para a gramática <strong>Expr.g4</strong> e o <em>interpretador</em> em Python.</p>
+  </div>
+</header>
+
+<main class="container">
+  <section>
+    <h2>Visão geral</h2>
+    <p>Este documento conecta, para cada construção da linguagem, os níveis <span class="tag">Léxico</span>, <span class="tag">Sintaxe</span> e <span class="tag">Interpretação</span> (funções/trechos do <code>interpretador.py</code>), com uma explicação concisa da lógica e observações de implementação.</p>
+    <p>Convenções: <em>memória</em> do programa é um dicionário <code>memoria: dict[str,int]</code>; a função principal de execução é <code>avalie(t)</code>.</p>
+  </section>
+
+  <section>
+    <h2>Programa (<code>ProgramaContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td>Uso de tokens estruturais e de comandos (<code>ID</code>, <code>print</code>, <code>for</code>, operadores, números, pontuação).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>programa : declaracao* comando* EOF ;  // ou similar</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.ProgramaContext():
+    for x in t.comandos:
+        avalie(x)
+    return</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Executa sequencialmente os comandos do programa (as declarações não afetam execução imediata).</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Atribuição (<code>AtribContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>ID</code>, <code>'='</code>, <code>NUM</code>, operadores aritméticos, <code>';'</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>atribuicao : ID '=' expr ';' ;</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.AtribContext():
+    nome = t.getChild(0).getText()
+    valor = avalie(t.getChild(2))
+    memoria[nome] = valor
+    return</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Avalia a expressão à direita e armazena o resultado na variável à esquerda em <code>memoria</code>.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Comando de saída (<code>PrintContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>'print'</code>, parênteses ou espaçamento conforme gramática, <code>expr</code>, <code>';'</code> (se houver).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>comando : 'print' expr ';' ;  // ou equivalente</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.PrintContext():
+    v = avalie(t.e)
+    print(v)
+    return</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Avalia a expressão e envia o resultado para a saída padrão.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Laço <code>for</code> (<code>ForContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>'for'</code>, <code>ID</code>, números, símbolos estruturais como <code>'{'</code> <code>'}'</code>, vírgulas/até conforme a regra.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>comandoFor : 'for' ID '(' NUM ',' NUM ')' '{' comando* '}' ; // ex. típico
+// No código fornecido, os filhos usados sugerem algo como:
+// for ID { NUM NUM } ... (ajuste ao seu formato real)</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.ForContext():
+    nome  = t.getChild(1).getText()
+    valorI = int(t.getChild(3).getText())
+    valorF = int(t.getChild(5).getText())
+    for v in range(valorI, valorF+1):
+        memoria[nome] = v
+        for x in t.c:
+            avalie(x)
+    return</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Itera a variável de controle de <code>valorI</code> até <code>valorF</code> (inclusive), executando o corpo a cada passo. A variável é atualizada em <code>memoria</code> a cada iteração.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Constante numérica (<code>ConstContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>NUM</code> (p.ex. <span class="kbd">[0-9]+</span>).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : NUM ;</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.ConstContext():
+    return t.valorNumerico
+    return int(t.getChild(0).getText())</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Retorna o valor inteiro da constante. <strong>Observação:</strong> há dois <code>return</code>; o segundo é inalcançável e pode ser removido. Recomenda-se manter apenas <code>return t.valorNumerico</code> aproveitando a anotação feita na análise semântica.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Expressões aditivas (<code>SomaContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>'+'</code>, <code>'-'</code>, além dos átomos de <code>expr</code> (<code>ID</code>, <code>NUM</code>, parênteses).</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : expr ('+'|'-') expr
+     |  ...                         // outros casos</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.SomaContext():
+    ve = avalie(t.e)
+    vd = avalie(t.d)
+    if t.getChild(1).getText() == '+':
+        return ve + vd
+    else:
+        return ve - vd</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Avalia recursivamente as subexpressões esquerda (<code>e</code>) e direita (<code>d</code>) e aplica o operador conforme o token central.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Expressões multiplicativas (<code>MultContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>'*'</code>, <code>'/'</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : expr ('*'|'/') expr
+     |  ...</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.MultContext():
+    ve = avalie(t.e)
+    vd = avalie(t.d)
+    if t.getChild(1).getText() == '*':
+        return ve * vd
+    else:
+        return ve / vd</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Multiplicação e divisão numéricas. <strong>Observações:</strong> (1) Divisão em Python com <code>/</code> retorna <em>float</em>; se quiser divisão inteira, use <code>//</code>. (2) Pode ser interessante tratar divisão por zero com validação prévia.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Agrupamento (<code>GroupContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>'('</code>, <code>')'</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : '(' expr ')' ;</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.GroupContext():
+    return avalie(t.e)</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Retorna o valor da expressão interna, respeitando a precedência via agrupamento.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Variável (<code>VarContext</code>)</h2>
+    <table>
+      <tr><th>Léxico</th><td><code>ID</code>.</td></tr>
+      <tr><th>Sintaxe</th><td><pre><code>expr : ID ;</code></pre></td></tr>
+      <tr><th>Interpretação (Python)</th><td><pre><code>case ExprParser.VarContext():
+    nome = t.getChild(0).getText()
+    valor = memoria.get(nome)
+    if valor == None:
+        raise Exception(f"Variavel {nome} não definida")
+    return valor</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Obtém o valor atual do identificador a partir da memória. Lança erro se a variável ainda não foi inicializada.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Fallback (casos não tratados)</h2>
+    <table>
+      <tr><th>Interpretação</th><td><pre><code>raise Exception(f"não sei avaliar {t.getText()} ainda")</code></pre></td></tr>
+      <tr><th>Explicação</th><td>Se um nó de árvore chegar a esse ponto sem correspondência, o interpretador falha explicitamente, indicando a construção ainda não suportada.</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Notas gerais e sugestões</h2>
+    <ul>
+      <li><strong>Inicialização de variáveis no laço <code>for</code>:</strong> a implementação atual torna a variável definida a cada iteração; garanta que isso condiz com a semântica desejada da linguagem.</li>
+      <li><strong>Tipo numérico:</strong> a gramática e o interpretador operam com inteiros, exceto na divisão (<code>/</code>) que produz <em>float</em>. Uniformize conforme a especificação (inteiro puro, inteiro com divisão truncada, ou números de ponto flutuante).</li>
+      <li><strong>Retorno duplicado em <code>ConstContext</code>:</strong> remova o segundo <code>return</code> para evitar código morto.</li>
+      <li><strong>Erros de execução:</strong> para mensagens mais claras, inclua a linha/coluna dos nós (p.ex. via <code>t.start.line</code>) onde aplicável.</li>
+    </ul>
+  </section>
+
+  <p class="footer">Gerado automaticamente a partir do código do interpretador. Ajuste os trechos léxicos/sintáticos conforme a sua <code>Expr.g4</code> caso haja diferenças nos nomes de regras ou tokens.</p>
+</main>
+</body>
+</html>
