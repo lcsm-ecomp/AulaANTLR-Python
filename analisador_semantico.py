@@ -24,13 +24,16 @@ def analise(t):
            nome = t.nome.text
            if declaracoes.get(nome)!=None:
                raise Exception(f'variavel {nome} declarada duas vezes na linha {t.start.line}')   
-           declaracoes[nome] = 'int'
+           declaracoes[nome] = t.tipo.text
       case ExprParser.AtribContext():
            nome = t.nome.text
            valor = t.valor
            if declaracoes.get(nome)==None:
                raise Exception(f'variavel {nome} nao foi declarada na atribuicao')
-           analise(valor)
+           tipo_valor = analise(valor)
+           if tipo_valor != declaracoes[nome]:
+                raise Exception("Erro de tipos na atribuição")
+           return True
       case ExprParser.ForContext():
            nome = t.nome.text
            if declaracoes.get(nome)==None:
@@ -38,13 +41,22 @@ def analise(t):
            for com in t.c:
                analise(com)
 
-      case ExprParser.ConstContext():
+      case ExprParser.ConstNumContext():
            t.valorNumerico = int(t.getText())
-           return True
+           return "Int"
+      case ExprParser.ConstStrContext():
+           return "String"
       case ExprParser.VarContext():
            nome = t.nome.text
            if declaracoes.get(nome)==None:
               raise Exception(f'variavel {nome} nao foi declarada na expressao')
+           return declaracoes[nome]
+      case ExprParser.STRConcatContext():
+           tipo_e = analise(t.e)
+           tipo_d = analise(t.d)
+           if tipo_e!='String' or tipo_d!='String':
+               raise Exception("Erro de tipos na operação de concatenacao")
+           return "String"   
       case TerminalNode():
            return True
       case _:

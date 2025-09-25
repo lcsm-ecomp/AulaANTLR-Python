@@ -53,12 +53,39 @@ class ExprListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by ExprParser#ConstNum.
+    def enterConstNum(self, ctx:ExprParser.ConstNumContext):
+        pass
+
+    # Exit a parse tree produced by ExprParser#ConstNum.
+    def exitConstNum(self, ctx:ExprParser.ConstNumContext):
+        pass
+
+
     # Enter a parse tree produced by ExprParser#Group.
     def enterGroup(self, ctx:ExprParser.GroupContext):
         pass
 
     # Exit a parse tree produced by ExprParser#Group.
     def exitGroup(self, ctx:ExprParser.GroupContext):
+        pass
+
+
+    # Enter a parse tree produced by ExprParser#STRLength.
+    def enterSTRLength(self, ctx:ExprParser.STRLengthContext):
+        pass
+
+    # Exit a parse tree produced by ExprParser#STRLength.
+    def exitSTRLength(self, ctx:ExprParser.STRLengthContext):
+        pass
+
+
+    # Enter a parse tree produced by ExprParser#STRConcat.
+    def enterSTRConcat(self, ctx:ExprParser.STRConcatContext):
+        pass
+
+    # Exit a parse tree produced by ExprParser#STRConcat.
+    def exitSTRConcat(self, ctx:ExprParser.STRConcatContext):
         pass
 
 
@@ -80,21 +107,21 @@ class ExprListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by ExprParser#Const.
-    def enterConst(self, ctx:ExprParser.ConstContext):
-        pass
-
-    # Exit a parse tree produced by ExprParser#Const.
-    def exitConst(self, ctx:ExprParser.ConstContext):
-        pass
-
-
     # Enter a parse tree produced by ExprParser#Soma.
     def enterSoma(self, ctx:ExprParser.SomaContext):
         pass
 
     # Exit a parse tree produced by ExprParser#Soma.
     def exitSoma(self, ctx:ExprParser.SomaContext):
+        pass
+
+
+    # Enter a parse tree produced by ExprParser#ConstStr.
+    def enterConstStr(self, ctx:ExprParser.ConstStrContext):
+        pass
+
+    # Exit a parse tree produced by ExprParser#ConstStr.
+    def exitConstStr(self, ctx:ExprParser.ConstStrContext):
         pass
 
 

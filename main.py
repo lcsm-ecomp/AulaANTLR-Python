@@ -16,6 +16,26 @@ src = """
   end
   print soma    ;
 """
+src = """
+   String msg;
+   Int valor ;
+   valor = "1" ;
+   print(valor) ;
+   msg = "ola mundo";
+   print msg ;
+   print #msg ;
+   msg = msg ++ ", bom dia a todos" ;
+   print msg;
+   msg = msg  ;
+   print msg;
+"""
+src = """
+   String msg;
+   Int valor ;
+   valor = 1 ;
+   msg = "a" ;
+   msg = "1" ++ msg ; 
+"""
 input_stream = InputStream(src)
 lexer = ExprLexer(input_stream)
 token_stream = CommonTokenStream(lexer)

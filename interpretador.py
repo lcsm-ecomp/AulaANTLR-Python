@@ -31,23 +31,39 @@ def avalie(t):
                for x in t.c:
                   avalie(x)	
            return
-      case ExprParser.ConstContext():
+      case ExprParser.ConstNumContext():
            return t.valorNumerico
            return int(t.getChild(0).getText())
+      case ExprParser.ConstStrContext():
+           return t.valor.text[1:-1]
+      case ExprParser.STRLengthContext():
+           valor = avalie(t.e)
+           return len(valor)
+      case ExprParser.STRConcatContext():
+           ve = avalie(t.e)
+           vd = avalie(t.d)
+           if isinstance(ve, str) and isinstance(vd,str):
+              return ve+vd
+           raise Exception("Erro de tipos do programa")
       case ExprParser.SomaContext():
            ve = avalie(t.e)
            vd = avalie(t.d)
-           if t.getChild(1).getText()=='+':
-              return ve+vd
-           else:
-              return ve-vd
+           if isinstance(ve, int) and isinstance(vd,int):
+              if t.getChild(1).getText()=='+':
+                 return ve+vd
+              else:
+                 return ve-vd
+           raise Exception("Erro de tipos na soma")
+
       case ExprParser.MultContext():
            ve = avalie(t.e)
            vd = avalie(t.d)
-           if t.getChild(1).getText()=='*':
-              return ve*vd
-           else:
-              return ve/vd
+           if isinstance(ve, int) and isinstance(vd,int):
+              if t.getChild(1).getText()=='*':
+                 return ve*vd
+              else:
+                 return ve/vd
+           raise Exception("Erro de tipos na multiplicacao")
       case ExprParser.GroupContext():
            return avalie(t.e)
       case ExprParser.VarContext():
