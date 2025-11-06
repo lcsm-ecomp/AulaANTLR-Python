@@ -2,6 +2,7 @@ from antlr4 import *
 from ExprLexer import *
 from ExprParser import *
 from interpretador import *
+from compilador import *
 from analisador_semantico import *
 
 src = """
@@ -36,6 +37,24 @@ src = """
    msg = "a" ;
    msg = "1" ++ msg ; 
 """
+
+src = """
+   Int x;
+   Int y;
+   x = 1;
+   y = 2*x + 1;
+   print (x+y) ;
+"""
+
+src = """
+   Int x;
+   Int y;
+   x = 1;
+   y = x+1;
+   x = 5*x+y;
+   print x*y + 5*(x+y);
+"""
+
 input_stream = InputStream(src)
 lexer = ExprLexer(input_stream)
 token_stream = CommonTokenStream(lexer)
@@ -55,11 +74,12 @@ if False:
       print(f"Filho {x} = {tree.getChild(x).getText()}")
 
 
-print("Analisando o programa")
-analise(tree)
+#print("Analisando o programa")
+#analise(tree)
 
-print("Executando o programa...")
-avalie(tree)
-
+#print("Executando o programa...")
+#avalie(tree)
+print("Codigo Gerado:")
+gera_codigo(tree)
 
 

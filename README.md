@@ -12,7 +12,7 @@ no semestre 2025.2: Um compilador / interpretador de uma linguagem imperativa se
 Utilizando python:
    - python -m venv .
    - .\Scripts\activate  # ou source ./bin/activate (pode variar de acordo com o SO)
-   - pip install antlr4-tool antlr4-python3-runtime 
+   - pip install antlr4-tools antlr4-python3-runtime 
    
 2. Execução do projeto
    - antlr4 -Dlanguage=Python3 Expr.g4

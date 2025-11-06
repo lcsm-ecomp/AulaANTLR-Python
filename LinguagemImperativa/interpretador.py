@@ -32,8 +32,8 @@ def avalie(t):
                   avalie(x)	
            return
       case ExprParser.ConstNumContext():
-           return t.valorNumerico
-           return int(t.getChild(0).getText())
+           #return t.valorNumerico
+               return int(t.getChild(0).getText())
       case ExprParser.ConstStrContext():
            return t.valor.text[1:-1]
       case ExprParser.STRLengthContext():
